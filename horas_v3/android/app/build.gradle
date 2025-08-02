@@ -48,7 +48,7 @@ android {
         applicationId "br.com.webevolui.horas.v3.horas_v3"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -66,9 +66,9 @@ android {
 
 ext.flutter = [
         source: "../..",
-        minSdkVersion: 21,  // ✅ Aqui está a correção
-        targetSdkVersion: 33,
-        compileSdkVersion: 33,
+        minSdkVersion: 23,
+        targetSdkVersion: 34,
+        compileSdkVersion: 34,
 ]
 
 

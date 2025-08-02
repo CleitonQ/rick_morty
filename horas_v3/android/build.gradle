@@ -1,16 +1,19 @@
 buildscript {
-    // Certifique-se de que a versão do Kotlin é compatível com o AGP que você escolher
-    // AGP 8.3.x geralmente funciona bem com Kotlin 1.9.0 ou 1.9.20+
-    // Por exemplo, Kotlin 1.9.22 foi usado com AGP 8.2.0. Verifique as notas de release do AGP.
-    ext.kotlin_version = '1.9.22' // Verifique a compatibilidade!
+    // Ajuste conforme sua versão do Kotlin
+    ext.kotlin_version = '1.9.0'
+
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        // Atualize para pelo menos 8.3.0, por exemplo 8.3.2 ou 8.4.0
-        classpath 'com.android.tools.build:gradle:8.3.2'
+        // Android Gradle Plugin atualizado para 8.3.2
+        classpath "com.android.tools.build:gradle:8.3.2"
+
+        // Kotlin Gradle Plugin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // … outros classpaths que você usar (por ex. Navigation Safe Args, Firebase, etc.)
     }
 }
 
@@ -21,14 +24,14 @@ allprojects {
     }
 }
 
+// Redireciona builds de subprojetos para pasta comum
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(':app')
 }
 
+// Tarefa de limpeza
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
