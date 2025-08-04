@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:horas_v3/services/auth_service.dart';
 
 class RegisterScreen extends StatelessWidget {
-  RegisterScreen({super.key});
+  final AuthService authService;
+
+  RegisterScreen({Key? key, required this.authService}) : super(key: key);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
-  final TextEditingController _confirmaSenhaController =
-      TextEditingController();
+  final TextEditingController _confirmaSenhaController = TextEditingController();
   final TextEditingController _nomeController = TextEditingController();
-
-  AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +51,12 @@ class RegisterScreen extends StatelessWidget {
                       obscureText: true,
                       controller: _confirmaSenhaController,
                       decoration:
-                          const InputDecoration(hintText: 'Confirme sua senha'),
+                      const InputDecoration(hintText: 'Confirme sua senha'),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        if (_senhaController.text ==
-                            _confirmaSenhaController.text) {
+                        if (_senhaController.text == _confirmaSenhaController.text) {
                           authService
                               .cadastrarUsuario(
                             email: _emailController.text,
@@ -71,8 +69,7 @@ class RegisterScreen extends StatelessWidget {
                                 content: Text(erro),
                                 backgroundColor: Colors.red,
                               );
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
                             } else {
                               Navigator.pop(context);
                             }
@@ -82,7 +79,6 @@ class RegisterScreen extends StatelessWidget {
                             content: Text('As senhas não correspondem'),
                             backgroundColor: Colors.red,
                           );
-
                           ScaffoldMessenger.of(context).showSnackBar(snackBar);
                         }
                       },
@@ -91,7 +87,7 @@ class RegisterScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

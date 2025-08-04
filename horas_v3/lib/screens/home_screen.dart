@@ -11,9 +11,7 @@ import '../models/hour.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
-  String titulo = 'Horas V3';
-
-  HomeScreen({super.key, required this.user});
+  const HomeScreen({super.key, required this.user});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,11 +20,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Hour> listHours = [];
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  String titulo = 'Horas V3'; // Agora 'titulo' é uma variável local e final
 
   @override
   void initState() {
     super.initState();
-
     setuptFCM();
     refresh();
   }
@@ -36,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: Menu(user: widget.user),
       appBar: AppBar(
-        title: Text(widget.titulo),
+        title: Text(titulo), // Usando o título local
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -46,59 +44,59 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: (listHours.isEmpty)
           ? const Center(
-              child: Text(
-                'Nada por aqui.\nVamos registrar um dia de trabalho?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
+        child: Text(
+          'Nada por aqui.\nVamos registrar um dia de trabalho?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+      )
+          : ListView(
+        padding: const EdgeInsets.only(left: 4, right: 4),
+        children: List.generate(
+          listHours.length,
+              (index) {
+            Hour model = listHours[index];
+            return Dismissible(
+              key: ValueKey<Hour>(model),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 12),
+                color: Colors.red,
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
                 ),
               ),
-            )
-          : ListView(
-              padding: const EdgeInsets.only(left: 4, right: 4),
-              children: List.generate(
-                listHours.length,
-                (index) {
-                  Hour model = listHours[index];
-                  return Dismissible(
-                    key: ValueKey<Hour>(model),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 12),
-                      color: Colors.red,
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.white,
+              onDismissed: (direction) {
+                remove(model);
+              },
+              child: Card(
+                elevation: 2,
+                child: Column(
+                  children: [
+                    ListTile(
+                      onLongPress: () {
+                        showFormModal(model: model);
+                      },
+                      onTap: () {},
+                      leading: const Icon(
+                        Icons.list_alt_rounded,
+                        size: 56,
                       ),
-                    ),
-                    onDismissed: (direction) {
-                      remove(model);
-                    },
-                    child: Card(
-                      elevation: 2,
-                      child: Column(
-                        children: [
-                          ListTile(
-                            onLongPress: () {
-                              showFormModal(model: model);
-                            },
-                            onTap: () {},
-                            leading: const Icon(
-                              Icons.list_alt_rounded,
-                              size: 56,
-                            ),
-                            title: Text(
-                                "Data: ${model.data} hora: ${HourHelper.minutesTohours(model.minutos)}"),
-                            subtitle: Text(model.descricao!),
-                          )
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                      title: Text(
+                          "Data: ${model.data} hora: ${HourHelper.minutesTohours(model.minutos)}"),
+                      subtitle: Text(model.descricao!),
+                    )
+                  ],
+                ),
               ),
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -241,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       listHours = temp;
-      widget.titulo = 'Horas V3 - Total: ${horas.inHours.toString()}h:${horas.inMinutes.remainder(60).toString().padLeft(2, '0')}';
+      titulo = 'Horas V3 - Total: ${horas.inHours.toString()}h:${horas.inMinutes.remainder(60).toString().padLeft(2, '0')}';
     });
   }
 }
@@ -278,5 +276,4 @@ setuptFCM() async {
       print('Message also contained a notification: ${message.notification}');
     }
   });
-
 }

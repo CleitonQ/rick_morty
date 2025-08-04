@@ -7,12 +7,12 @@ import 'package:horas_v3/screens/reset_password_modal.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+  final AuthService authService;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  AuthService authService = AuthService();
+  LoginScreen({super.key, required this.authService});
 
   @override
   Widget build(BuildContext context) {
@@ -49,16 +49,16 @@ class LoginScreen extends StatelessWidget {
                       onPressed: () {
                         authService
                             .entrarUsuario(
-                                email: _emailController.text,
-                                senha: _senhaController.text)
+                          email: _emailController.text,
+                          senha: _senhaController.text,
+                        )
                             .then((String? erro) {
                           if (erro != null) {
                             final snackBar = SnackBar(
-                                content: Text(erro),
-                                backgroundColor: Colors.red);
-
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(snackBar);
+                              content: Text(erro),
+                              backgroundColor: Colors.red,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
                           }
                         });
                       },
@@ -67,31 +67,34 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        singinWithGoogle();
+                        signinWithGoogle();
                       },
-                      child: const Text('Entrar com google'),
+                      child: const Text('Entrar com Google'),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
-                            ));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                RegisterScreen(authService: authService),
+                          ),
+                        );
                       },
-                      child:
-                          const Text('Ainda não tem uma conta, crie uma conta'),
+                      child: const Text(
+                          'Ainda não tem uma conta? Crie uma conta'),
                     ),
                     TextButton(
                       onPressed: () {
                         showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return PasswordresetModal();
-                            });
+                          context: context,
+                          builder: (BuildContext context) {
+                            return PasswordresetModal();
+                          },
+                        );
                       },
-                      child: Text('Esqueceu sua senha?'),
+                      child: const Text('Esqueceu sua senha?'),
                     )
                   ],
                 ),
@@ -103,10 +106,10 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Future<UserCredential> singinWithGoogle() async {
+  Future<UserCredential> signinWithGoogle() async {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
     final GoogleSignInAuthentication googleAuth =
-        await googleUser!.authentication;
+    await googleUser!.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
