@@ -1,6 +1,6 @@
 # rick_morty
 
-Projeto iniciado com a finalidade de cumprir os desafios do workshop Kode_ Start 2025
+Projeto iniciado com a finalidade de cumprir os desafios do workshop Kode Start 2025
 
 ## Getting Started
 
