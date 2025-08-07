@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:rick_morty/pages/home_page.dart';
+import 'package:rick_morty/pages/home_page.dart'; // Certifique-se de que a página principal (HomePage) esteja corretamente importada
 
 void main() {
   runApp(MyApp());
@@ -13,12 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Rick and Morty App',
-      home: HomePage(),
+      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme),
       ),
+      home: HomePage(),
     );
   }
 }
