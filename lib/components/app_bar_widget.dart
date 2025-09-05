@@ -1,93 +1,127 @@
 import 'package:flutter/material.dart';
 
-// O widget 'AppBarWidget' é uma barra de navegação personalizada para o aplicativo
-// Ela se ajusta conforme a página em que está, exibindo um ícone de voltar ou menu.
+/// Widget customizado para o AppBar, usado em todas as telas do aplicativo.
+///
+/// O `AppBarWidget` é configurado para exibir um `AppBar` com comportamento
+/// condicional dependendo se a página é uma página de detalhes ou não.
+/// Ele também inclui um ícone de login e um logo centralizado.
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
-  final bool isDetailPage;  // Indica se estamos na página de detalhes (se sim, a seta de voltar é mostrada)
+  final bool isDetailPage;  // Flag para determinar se a página é uma página de detalhes
 
-  // O construtor recebe um parâmetro opcional 'isDetailPage' para configurar o ícone a ser mostrado.
   const AppBarWidget({super.key, this.isDetailPage = false});
 
-  // Define a altura da AppBar
   @override
-  Size get preferredSize => Size.fromHeight(150);  // A altura da AppBar será 150px
+  Size get preferredSize => Size.fromHeight(150);  // Define a altura do AppBar
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Color(0xFF1C1B1F),  // Cor de fundo da AppBar (tom escuro)
-
-      // Ícone de navegação (Menu ou Voltar)
+      backgroundColor: Color(0xFF1C1B1F), // Cor sólida para o fundo do AppBar
+      elevation: 4, // Sombra leve para destacar o AppBar
       leading: InkWell(
-        borderRadius: BorderRadius.circular(50),  // Borda arredondada para o efeito ripple circular
+        borderRadius: BorderRadius.circular(50),  // Tornando o ícone interativo com borda arredondada
         onTap: () {
           if (isDetailPage) {
-            print("Voltar clicado");  // Se for página de detalhes, imprime no console e volta para a tela inicial
-            Navigator.pop(context);  // Navega para a tela anterior (voltar)
+            _onBackPressed(context);  // Navegar para a página anterior se estiver na página de detalhes
           } else {
-            print("Menu Clicado");  // Caso contrário, imprime no console indicando que o menu foi clicado
+            _onMenuPressed();  // Exibe o menu se não for a página de detalhes
           }
         },
         child: Container(
-          padding: EdgeInsets.all(4),  // Ajusta o padding do ícone (diminuindo para efeito ripple menor)
+          padding: EdgeInsets.all(4),
           child: Icon(
-            isDetailPage ? Icons.arrow_back : Icons.menu,  // Se for página de detalhes, exibe a seta de voltar, caso contrário, exibe o ícone de menu
-            color: Colors.white,  // Cor do ícone é branco
+            isDetailPage ? Icons.arrow_back : Icons.menu,  // Ícone de volta ou menu, dependendo da página
+            color: Colors.white,
           ),
         ),
       ),
-
-      // Ícone de perfil no lado direito
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 15.0),  // Adiciona espaçamento à direita do ícone
-          child: MouseRegion(
-            onEnter: (_) {},  // Não faz nada ao passar o mouse sobre o ícone (não implementado)
-            onExit: (_) {},   // Não faz nada ao retirar o mouse do ícone (não implementado)
-            child: InkWell(
-              onTap: () {
-                print("login Clicado");  // Quando o ícone é pressionado, imprime "login clicado" no console
-              },
-              borderRadius: BorderRadius.circular(35),  // Define a borda arredondada do ícone (raio de 35)
-              child: ClipOval(
-                child: Image.asset(
-                  'web/icons/profile_icon.png',  // Caminho da imagem do ícone de perfil
-                  width: 31.46,  // Largura do ícone de perfil
-                  height: 31.46,  // Altura do ícone de perfil
-                  fit: BoxFit.cover,  // Faz com que a imagem cubra todo o espaço sem distorcer
-                ),
+          padding: const EdgeInsets.only(right: 15.0), // Alinhamento do ícone de login à direita
+          child: InkWell(
+            onTap: _onLoginPressed,  // Ação do ícone de login
+            borderRadius: BorderRadius.circular(50),
+            child: ClipOval(
+              child: Image.asset(
+                'web/icons/profile_icon.png',  // Ícone do perfil do usuário
+                width: 31.46,
+                height: 31.46,
+                fit: BoxFit.cover,  // A imagem é cortada para se ajustar ao formato circular
               ),
             ),
           ),
         ),
       ],
+      centerTitle: true,  // Centraliza o título do AppBar
+      flexibleSpace: _buildFlexibleSpace(),  // Espaço flexível para adicionar o logo e o título adicional
+    );
+  }
 
-      centerTitle: true,  // Centraliza o título da AppBar
+  /// Função para voltar para a tela anterior
+  void _onBackPressed(BuildContext context) {
+    if (isInDebugMode()) {
+      print("Voltar Clicado");
+    }
+    Navigator.pop(context);  // Volta para a tela anterior
+  }
 
-      // Espaçamento e conteúdo centralizado dentro da AppBar
-      flexibleSpace: Column(
-        mainAxisAlignment: MainAxisAlignment.center,  // Centraliza os widgets filhos verticalmente
-        children: [
-          // Logo do aplicativo
-          Image.asset(
-            'web/icons/logo_icon.png',  // Caminho correto para a logo
-            width: 115,  // Largura da logo
-            height: 76.99,  // Altura da logo
-          ),
-          // Espaço entre a logo e o texto
-          SizedBox(height: 0),  // Pode ser ajustado se precisar de mais espaço entre a logo e o texto
-          Padding(
-            padding: const EdgeInsets.only(top: 0),  // Ajuste o padding conforme necessário
-            child: Text(
-              'RICK AND MORTY API',  // Texto abaixo da logo
-              style: TextStyle(
-                fontSize: 14.5,  // Tamanho da fonte
-                color: Color(0xFFFFFFFF),  // Cor do texto (branco)
+  /// Função para o comportamento do Menu (caso contrário)
+  void _onMenuPressed() {
+    if (isInDebugMode()) {
+      print("Menu Clicado");
+    }
+  }
+
+  /// Função para o comportamento do ícone de login
+  void _onLoginPressed() {
+    if (isInDebugMode()) {
+      print("Login Clicado");
+    }
+  }
+
+  /// Verifica se o aplicativo está no modo de desenvolvimento (debug)
+  bool isInDebugMode() {
+    bool inDebugMode = false;
+    assert(inDebugMode = true); // Será true apenas no modo de depuração (debug)
+    return inDebugMode;
+  }
+
+  /// Método para construir o espaço flexível (logo e título do app)
+  Widget _buildFlexibleSpace() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          'web/icons/logo_icon.png',  // Logo do aplicativo
+          width: 115,
+          height: 76.99,
+        ),
+        SizedBox(height: 0),
+        Padding(
+          padding: const EdgeInsets.only(top: 0),
+          child: Container(
+            width: 197,
+            height: 17,
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,  // Ajusta o texto sem distorcer
+              child: Text(
+                'RICK AND MORTY API',  // Título do aplicativo
+                style: TextStyle(
+                  fontFamily: 'Lato',
+                  fontWeight: FontWeight.w400,
+                  fontStyle: FontStyle.normal,
+                  fontSize: 14.5,
+                  height: 1.0,
+                  letterSpacing: 0.165,
+                  color: Color(0xFFFFFFFF),  // Cor branca para o texto
+                ),
+                textAlign: TextAlign.center,  // Centraliza o texto
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

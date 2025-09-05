@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:rick_morty/models/detailed_character.dart';  // Importando a classe DetailedCharacter que contém os detalhes do personagem.
+import 'package:rick_morty/models/detailed_character.dart'; // Importando a classe DetailedCharacter
 import 'package:rick_morty/data/repository.dart'; // Para buscar os dados da API
-import 'package:rick_morty/components/app_bar_widget.dart';  // Importando o AppBarWidget, que personaliza a barra de navegação
+import 'package:rick_morty/components/app_bar_widget.dart';  // Importando o AppBarWidget
 
-// Página que exibe os detalhes de um personagem específico.
 class CharacterPage extends StatefulWidget {
-  final int characterId;  // Recebe o ID do personagem selecionado
+  final int characterId;  // Recebe o ID do personagem
 
-  // Construtor da classe que inicializa o ID do personagem
   const CharacterPage({super.key, required this.characterId});
 
   @override
@@ -15,7 +13,7 @@ class CharacterPage extends StatefulWidget {
 }
 
 class _CharacterPageState extends State<CharacterPage> {
-  late Future<DetailedCharacter> _characterDetails;  // Declara o futuro que irá armazenar os detalhes do personagem
+  late Future<DetailedCharacter> _characterDetails;  // Variável para armazenar os detalhes do personagem
 
   @override
   void initState() {
@@ -25,12 +23,10 @@ class _CharacterPageState extends State<CharacterPage> {
 
     // Verificando se a função getFirstSeenIn está sendo chamada corretamente
     _characterDetails.then((character) {
-      print('getFirstSeenIn foi chamado para o personagem: ${character.name}');
+      print('Personagem: ${character.name}');
       character.getFirstSeenIn().then((_) {
         // Atualiza o estado com o valor de firstSeenIn após a requisição.
-        setState(() {
-          // A UI será atualizada após a requisição para o nome do episódio.
-        });
+        setState(() {});
       });
     }).catchError((error) {
       // Caso ocorra algum erro, exibe no log.
@@ -41,90 +37,204 @@ class _CharacterPageState extends State<CharacterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarWidget(isDetailPage: true),  // Usando o AppBarWidget com a seta de voltar
-      body: FutureBuilder<DetailedCharacter>(  // Constrói a UI baseando-se nos detalhes do personagem (assíncrono)
-        future: _characterDetails,  // Future que carrega os detalhes do personagem
+      appBar: AppBarWidget(isDetailPage: true),  // Exibe o AppBar customizado
+      backgroundColor: Colors.black,  // Cor de fundo da página
+      body: FutureBuilder<DetailedCharacter>(
+        future: _characterDetails,  // Espera a conclusão da requisição para exibir os dados
         builder: (context, snapshot) {
-          // Exibe um indicador de carregamento enquanto a requisição é processada
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());  // Exibe um indicador de carregamento enquanto os dados estão sendo buscados
           }
 
-          // Exibe erro se houver um problema na requisição
           if (snapshot.hasError) {
-            return Center(child: Text("Erro ao carregar os detalhes."));
+            return Center(child: Text("Erro ao carregar os detalhes."));  // Exibe uma mensagem caso haja erro
           }
 
-          // Quando os dados estiverem disponíveis, exibe o conteúdo
           if (snapshot.hasData) {
-            final character = snapshot.data!;  // Dados do personagem
+            final character = snapshot.data!;  // Obtém os dados do personagem
 
+            // Lógica para determinar a cor da bolinha de status
+            Color statusColor;
+            switch (character.status.toLowerCase()) {
+              case 'alive':
+                statusColor = Colors.green;
+                break;
+              case 'dead':
+                statusColor = Colors.red;
+                break;
+              case 'unknown':
+                statusColor = Colors.grey;
+                break;
+              default:
+                statusColor = Colors.black;
+            }
+
+            // Retorna a interface de detalhes do personagem
             return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Color(0xFF87A1FA),  // Cor de fundo azul para o card
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),  // Bordas arredondadas no topo
-                    topRight: Radius.circular(16), // Bordas arredondadas no topo
-                    bottomLeft: Radius.circular(16), // Bordas arredondadas na parte inferior
-                    bottomRight: Radius.circular(16), // Bordas arredondadas na parte inferior
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,  // Alinha o conteúdo à esquerda dentro do card
-                  children: [
-                    // Exibindo a imagem do personagem com tamanho fixo (320x160)
-                    ClipRRect(
+              padding: const EdgeInsets.all(20.0),
+              child: SingleChildScrollView(  // Permite rolagem se o conteúdo for maior que a tela
+                child: Center(  // Centraliza o card
+                  child: Container(
+                    width: 350,  // Limita a largura do card
+                    decoration: BoxDecoration(
+                      color: Color(0xFF87A1FA),  // Cor de fundo do container
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),  // Sem bordas arredondadas na parte superior
-                        topRight: Radius.circular(16), // Sem bordas arredondadas na parte superior
-                      ),
-                      child: Image.network(
-                        character.image,
-                        width: 320,  // Largura fixa de 320 pixels
-                        height: 160,  // Altura fixa de 160 pixels
-                        fit: BoxFit.cover,  // Faz a imagem cobrir completamente o espaço
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),  // Borda arredondada inferior esquerda
+                        bottomRight: Radius.circular(16),  // Borda arredondada inferior direita
                       ),
                     ),
-                    SizedBox(height: 5),  // Espaço entre a imagem e o texto
-                    // Nome do personagem, em letras maiúsculas
-                    Text(
-                      character.name.toUpperCase(),  // Nome do personagem transformado para maiúsculas
-                      style: TextStyle(
-                        color: Colors.white,  // Cor do texto
-                        fontSize: 16,  // Tamanho da fonte
-                        fontWeight: FontWeight.bold,  // Peso da fonte (negrito)
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Exibe a imagem do personagem
+                        ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(16),  // Borda arredondada superior esquerda
+                            topRight: Radius.circular(16),  // Borda arredondada superior direita
+                            bottomLeft: Radius.circular(16),  // Borda arredondada inferior esquerda
+                            bottomRight: Radius.circular(16),  // Borda arredondada inferior direita
+                          ),
+                          child: Image.network(
+                            character.image,
+                            width: double.infinity,
+                            height: 160,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+
+                        SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Exibe o nome do personagem em caixa alta
+                              Text(
+                                character.name.toUpperCase(),  // Tratamento caso o nome seja null
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              SizedBox(height: 44),
+                              Row(
+                                children: [
+                                  // Exibe o círculo de status do personagem
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: statusColor,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,  // Borda branca
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  // Exibe o status e a espécie do personagem
+                                  Text(
+                                    "${character.status} - ${character.species}",  // Tratamento de null
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 15),
+                              // Exibe a localização do personagem
+                              Text(
+                                "Last know location:",
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w100,  // Título mais fino
+                                  color: Color.fromARGB(100, 255, 255, 255),
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                "${character.location.isEmpty ? 'Desconhecido' : character.location}",  // Tratamento de location null
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 15),
+                              // Exibe o nome do primeiro episódio
+                              Text(
+                                "First seen in:",
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color.fromARGB(100, 255, 255, 255),
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                character.firstSeenIn.isEmpty ? 'Desconhecido' : character.firstSeenIn,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 15),
+                              // Exibe o gênero do personagem
+                              Text(
+                                "Gender:",
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color.fromARGB(100, 255, 255, 255),
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                "${character.gender}",  // Tratamento de null
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 15),
+                              // Exibe a origem do personagem
+                              Text(
+                                "Origin:",
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color.fromARGB(100, 255, 255, 255),
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                "${character.origin}",  // Tratamento de null
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 30),  // Adiciona o espaço no final para distanciar do limite inferior
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 10),  // Espaço entre o nome e as informações abaixo
-                    // Exibindo informações detalhadas do personagem alinhadas à esquerda
-                    Text("Espécie: ${character.species}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                    SizedBox(height: 8),
-                    Text("Gênero: ${character.gender}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                    SizedBox(height: 8),
-                    Text("Status: ${character.status}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                    SizedBox(height: 8),
-                    Text("Origem: ${character.origin}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                    SizedBox(height: 8),
-                    Text("Última Localização: ${character.location}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                    SizedBox(height: 8),
-                    // Exibe o nome do episódio da primeira aparição do personagem
-                    Text("Primeira Aparição: ${character.firstSeenIn.isEmpty ? 'Desconhecido' : character.firstSeenIn}",
-                        style: TextStyle(fontSize: 16, color: Color(0xFFFFFFFF))),
-                  ],
+                  ),
                 ),
               ),
             );
           } else {
-            // Caso não haja dados, exibe mensagem informando que não há dados
-            return Center(child: Text("Sem dados disponíveis."));
+            return Center(child: Text("Sem dados disponíveis."));  // Exibe mensagem caso não haja dados
           }
         },
       ),

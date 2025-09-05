@@ -1,57 +1,70 @@
-import 'package:dio/dio.dart'; // Usando Dio para realizar requisições HTTP (biblioteca que facilita a comunicação com a API)
-import 'package:rick_morty/models/detailed_character.dart'; // Importando a classe DetailedCharacter, que contém os detalhes do personagem
+import 'package:dio/dio.dart';
+import 'package:rick_morty/models/detailed_character.dart'; // Importando a classe DetailedCharacter
 
-// Classe Repository responsável por fazer as requisições para a API e obter os dados do personagem
+/// Classe abstrata `Repository` que gerencia a comunicação com a API.
+///
+/// A `Repository` é responsável por fazer as requisições HTTP para obter os dados
+/// dos personagens e seus detalhes a partir da API do Rick and Morty.
 abstract class Repository {
-  // Instância de Dio configurada para fazer requisições HTTP à API do Rick and Morty.
+  // Instância do Dio configurada com a URL base da API.
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: "https://rickandmortyapi.com/api/", // URL base da API
+    baseUrl: "https://rickandmortyapi.com/api/",  // Base URL da API
   ));
 
-  // Método assíncrono que retorna os detalhes de um personagem com base no seu ID
+  /// Método para obter os detalhes de um personagem pela sua ID.
+  ///
+  /// Este método faz uma requisição GET para buscar os detalhes completos de um personagem.
+  /// Ao receber a resposta, ele converte os dados JSON em uma instância de `DetailedCharacter`.
+  ///
+  /// [characterId] ID do personagem que se deseja buscar os detalhes.
+  /// Retorna uma instância de `DetailedCharacter` com as informações do personagem.
+  /// Lança um erro se ocorrer falha na requisição.
   static Future<DetailedCharacter> getCharacterDetails(int characterId) async {
     try {
-      // Fazendo a requisição GET à URL da API para pegar os detalhes do personagem com o ID fornecido.
       final response = await _dio.get('character/$characterId');
 
-      // Verificando se a resposta da API foi bem-sucedida (status code 200)
-      if (response.statusCode == 200) {
-        // Se a resposta for bem-sucedida, converte os dados JSON da resposta para um objeto DetailedCharacter
-        return DetailedCharacter.fromJson(response.data);
-      } else {
-        // Se a resposta não for bem-sucedida, lança uma exceção com a mensagem de erro
-        throw Exception("Erro ao carregar detalhes do personagem");
-      }
+      // Converte a resposta JSON em um objeto DetailedCharacter e o retorna
+      return DetailedCharacter.fromJson(response.data);
     } catch (e) {
-      // Captura qualquer erro ocorrido durante a requisição e lança uma exceção
-      throw Exception("Erro ao obter detalhes do personagem: $e");
+      // Exibe o erro e relança para ser tratado em outra parte do código
+      print('Erro ao obter os detalhes do personagem: $e');
+      rethrow;  // Relançar o erro para ser tratado na página
     }
   }
 
-  // Método assíncrono que retorna a lista de personagens da API
-  static Future<List<Map<String, dynamic>>> getCharacters() async {
+  /// Método para obter uma lista de personagens.
+  ///
+  /// Este método faz uma requisição GET para buscar uma lista de personagens da API.
+  /// A lista de personagens é paginada, e esse método aceita um número de página
+  /// como argumento.
+  ///
+  /// [page] Número da página a ser buscada.
+  /// Retorna uma lista de mapas contendo informações básicas dos personagens, como imagem, nome e ID.
+  /// Lança um erro se a resposta não for bem-sucedida.
+  static Future<List<Map<String, dynamic>>> getCharacters(int page) async {
     try {
-      // Fazendo a requisição GET à URL da API para pegar a lista de personagens
-      final response = await _dio.get('character');
+      final response = await _dio.get('character', queryParameters: {'page': page});
 
-      // Verificando se a resposta da API foi bem-sucedida (status code 200)
+      // Verifica se a resposta foi bem-sucedida
       if (response.statusCode == 200) {
-        // Se a resposta for bem-sucedida, converte os dados JSON da resposta para uma lista de mapas
+        // Converte a lista de personagens da API em uma lista de mapas com dados básicos
         List<Map<String, dynamic>> charactersList = (response.data['results'] as List)
             .map((character) => {
-          'image': character['image'],  // Adiciona a imagem do personagem
-          'text': character['name'],    // Adiciona o nome do personagem
-          'id': character['id']        // Adiciona o ID do personagem
+          'image': character['image'],
+          'text': character['name'],
+          'id': character['id'].toString(),
         })
             .toList();
-        return charactersList; // Retorna a lista de personagens
+
+        return charactersList;
       } else {
-        // Se a resposta não for bem-sucedida, lança uma exceção com a mensagem de erro
+        // Lança um erro caso a resposta não seja bem-sucedida
         throw Exception("Erro ao carregar a lista de personagens");
       }
     } catch (e) {
-      // Captura qualquer erro ocorrido durante a requisição e lança uma exceção
-      throw Exception("Erro ao obter lista de personagens: $e");
+      // Exibe o erro caso a requisição falhe
+      print("Erro ao carregar a lista de personagens: $e");
+      rethrow;  // Relança o erro para ser tratado em outra parte do código
     }
   }
 }

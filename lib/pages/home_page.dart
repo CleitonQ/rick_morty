@@ -1,42 +1,14 @@
+// Importação das dependências necessárias
 import 'package:flutter/material.dart';
 import 'package:rick_morty/components/app_bar_widget.dart';
 import 'package:rick_morty/components/character_card_widget.dart';
-import 'package:rick_morty/models/character_page.dart';  // Corrigido o caminho da importação
+import 'package:rick_morty/models/character_page.dart'; // Corrigido o caminho da importação
+import 'package:rick_morty/data/repository.dart'; // Para buscar os dados da API
 
-// Dados locais dos personagens (com os 6 personagens restaurados)
-final List<Map<String, String>> characterData = [
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/200.jpeg', // URL da imagem do personagem
-    'text': 'LAWYER MORTY', // Nome ou descrição do personagem
-    'id': '200', // ID único do personagem
-  },
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/379.jpeg',
-    'text': 'WEDDING BARTENDER',
-    'id': '379',
-  },
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/603.jpeg',
-    'text': 'CROSSY',
-    'id': '603',
-  },
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/616.jpeg',
-    'text': 'PHANTOM OF THE OPERA FAN',
-    'id': '616',
-  },
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/663.jpeg',
-    'text': 'REGGIE',
-    'id': '663',
-  },
-  {
-    'image': 'https://rickandmortyapi.com/api/character/avatar/676.jpeg',
-    'text': "JAPHETH'S MIDDLE SON",
-    'id': '676',
-  },
-];
-
+/// Página inicial do aplicativo que exibe a lista de personagens.
+///
+/// A HomePage gerencia o estado de carregamento de personagens e
+/// carrega mais personagens conforme o usuário rola a tela para baixo.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -45,51 +17,114 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int? selectedIndex;  // Índice do card selecionado
+  int page = 1; // Página inicial
+  List<Map<String, dynamic>> characterData = []; // Lista para armazenar os personagens
+  bool isLoading = false; // Flag de carregamento
+  bool hasMore = true; // Flag para saber se há mais personagens
+  ScrollController _scrollController = ScrollController(); // Controlador do scroll
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCharacters(); // Carregar os personagens ao iniciar
+
+    // Adicionando o listener ao controlador de scroll
+    _scrollController.addListener(() {
+      // Verifica se o usuário chegou ao final da lista e não está carregando mais dados
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent &&
+          !isLoading && hasMore) {
+        _loadCharacters(); // Chama a função para carregar mais personagens
+      }
+    });
+  }
+
+  /// Função assíncrona para carregar os personagens da API.
+  ///
+  /// Quando os personagens são carregados, a página é incrementada e os dados são adicionados à lista.
+  /// Se não houver mais personagens, a flag `hasMore` é desativada.
+  Future<void> _loadCharacters() async {
+    setState(() {
+      isLoading = true; // Marca que estamos carregando os dados
+    });
+
+    try {
+      final characters = await Repository.getCharacters(page); // Carrega personagens da API
+      setState(() {
+        page++; // Incrementa o número da página para a próxima requisição
+        if (characters.isEmpty) {
+          hasMore = false; // Se não houver mais personagens, marca como falso
+        } else {
+          characterData.addAll(characters); // Adiciona os novos personagens à lista
+        }
+        isLoading = false; // Desmarca o carregamento
+      });
+    } catch (e) {
+      print("Erro ao carregar personagens: $e");
+      setState(() {
+        isLoading = false; // Desmarca o carregamento em caso de erro
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;  // Obtendo a largura da tela para ajustar o padding
+    double width = MediaQuery.of(context).size.width; // Largura da tela para responsividade
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(150),  // Altura customizada da AppBar
-        child: AppBarWidget(),  // Usando o widget customizado para a AppBar
+        preferredSize: Size.fromHeight(131), // Tamanho do AppBar
+        child: AppBarWidget(), // Widget personalizado para a AppBar
       ),
-      backgroundColor: Colors.black,  // Cor de fundo do aplicativo
-      body: SingleChildScrollView(  // Permite rolagem da tela
+      backgroundColor: Colors.black, // Cor de fundo da página
+      body: SingleChildScrollView(
+        controller: _scrollController, // Associando o ScrollController para detectar o final da lista
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: width * 0.05),  // Ajustando o padding horizontal
+          padding: EdgeInsets.symmetric(horizontal: width * 0.05), // Adicionando padding nas laterais
           child: Column(
-            children: List.generate(characterData.length, (index) {
-              var item = characterData[index];  // Obtendo os dados do personagem
-
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 5.0),  // Ajuste do espaçamento entre os cards
-                child: GestureDetector(  // Detecta o toque no card
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = index;  // Atualiza o índice do card selecionado
-                    });
-
-                    Navigator.push(
+            children: [
+              // Gerando a lista de personagens dinamicamente
+              ...List.generate(characterData.length, (index) {
+                var item = characterData[index];
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 0.50), // Espaçamento entre os itens
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navegação para a tela de detalhes do personagem
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CharacterPage(  // Navega para a página de detalhes do personagem
-                            characterId: int.parse(item['id']!),  // Passando o ID do personagem como int
+                          builder: (context) => CharacterPage(
+                            characterId: int.parse(item['id']!), // Passando o id para a próxima tela
                           ),
-                        )
-                    );
-                  },
-                  child: CharacterCardWidget(  // Card do personagem
-                    image: item['image']!,  // Passando a imagem do personagem
-                    text: item['text']!,  // Passando o nome do personagem
-                    id: int.parse(item['id']!),  // Passando o ID do personagem
-                    isSelected: selectedIndex == index,  // Verifica se o card está selecionado
+                        ),
+                      );
+                    },
+                    child: CharacterCardWidget(
+                      image: item['image']!, // Imagem do personagem
+                      text: item['text']!,  // Nome do personagem
+                      id: int.parse(item['id']!),  // ID do personagem
+                    ),
+                  ),
+                );
+              }),
+
+              // Exibindo indicador de carregamento enquanto carrega mais dados
+              if (isLoading)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: CircularProgressIndicator(),
+                ),
+
+              // Caso não tenha mais personagens, exibe uma mensagem
+              if (!hasMore)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Text(
+                    "Não há mais personagens.",
+                    style: TextStyle(color: Colors.white), // Estilo do texto
                   ),
                 ),
-              );
-            }),
+            ],
           ),
         ),
       ),
